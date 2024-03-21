@@ -1,0 +1,478 @@
+<app-header></app-header>
+
+<section class="asset_management pt-4" id="asset_management" [class.sidebar-open]="isSidebarOpen">
+  <div class="container-fluid">
+    <div class="row p-3 d-flex justify-content-center align-items-center">
+      <div class="col-lg-6 col-md-4 col-12">
+        <h3>Asset Management</h3>
+      </div>
+      <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-end button_group">
+        <button type="button" class="btn mr-3" id="delete_all" (click)="deleteAll()" style="display: none;"><i class='bx bx-trash-alt mr-2 pl-2'></i></button>
+        <button type="button" class="btn mr-3" data-toggle="modal" data-target="#addAsset" (click)="openAddAssetModal()"><i class='bx bx-plus mr-2'></i>Add Asset</button>
+        <input type="file" (change)="onFileImported($event)" style="display: none;" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"/>
+        <button type="button" class="btn" (click)="importAssets()"><i class='bx bx-import mr-2'></i>Import Asset Data</button>
+      </div>
+    </div>
+    <div class="table-responsive mt-5">
+      <table id="example" class="display p-3">
+        <thead>
+          <tr>
+              <th><input type="checkbox" id="headerCheckbox" (change)="headerCheckboxChanged($event)"></th>
+              <th>Asset Name</th>
+              <th>Asset Code</th>
+              <th>Department</th>
+              <th>Location</th>
+              <th>Category</th>
+              <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let asset of assets ; let i = index;">
+              <td><input type="checkbox" class="bodyCheckbox" (change)="bodyCheckboxChanged($event.target,asset.id)"></td>
+              <td>{{ asset.asset_name }}</td>
+              <td>{{ asset.asset_code }}</td>
+              <td>{{ asset.asset_department }}</td>
+              <td>{{ asset.asset_location }}</td>
+              <td>{{ asset.asset_category }}</td>
+              <td class="d-flex justify-content-start align-items-center">
+                <a href="#" data-toggle="modal" data-target="#editAsset" (click)="openEditModal(asset)">
+                    <i class="bx bx-pencil mr-4"></i>
+                </a>
+                <a href="#" (click)="delete(asset)">
+                    <i class="bx bx-trash-alt"></i>
+                </a>
+              </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<app-footer></app-footer>
+
+<!--Add asset modal-->
+<div class="modal fade animate__animated animate__backInDown" id="addAsset" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Asset</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="dismissModal()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ul class="nav nav-tabs" id="navTab" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">General Information</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Main Store Details</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">Maintenance Details</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab4-tab" data-toggle="tab" href="#tab4" role="tab" aria-controls="tab4" aria-selected="false">Purchase & Account Details</a>
+            </li>
+          </ul>
+          <div class="tab-content" id="navTabContent">
+            <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+              <div class="row">
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm"  #registerForm="ngForm">
+                    <div class="form-group">
+                      <label>Asset Name</label>
+                      <input type="text" class="form-control" placeholder="Enter Asset Name" id="assetName" ngModel name="assetName" formControlName="assetName" required>
+                      <div *ngIf="assetForm.get('assetName')?.invalid && (assetForm.get('assetName')?.dirty || assetForm.get('assetName')?.touched)" class="text-danger">
+                        Asset Name is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Asset Classification</label>
+                      <select class="form-select form-control" formControlName="assetClassification" name="assetClassification">
+                        <option *ngFor="let option of assetClassifications" [value]="option">{{ option }}</option>
+                      </select>
+                      <div *ngIf="assetForm.get('assetClassification')?.invalid && (assetForm.get('assetClassification')?.dirty || assetForm.get('assetClassification')?.touched)" class="text-danger">
+                        Asset Classification is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Department</label>
+                      <select class="form-select form-control" formControlName="department" name="department">
+                        <option *ngFor="let option of departments" [value]="option">{{ option }}</option>
+                      </select>
+                      <div *ngIf="assetForm.get('department')?.invalid && (assetForm.get('department')?.dirty || assetForm.get('department')?.touched)" class="text-danger">
+                        Department is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Model</label>
+                      <input type="text" class="form-control" placeholder="Enter model" formControlName="model" name="model" ngModel>
+                      <div *ngIf="assetForm.get('model')?.invalid && (assetForm.get('model')?.dirty || assetForm.get('model')?.touched)" class="text-danger">
+                          Model is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Date of Inclusion</label>
+                      <input type="date" class="form-control" placeholder="Enter Date of Inclusion" formControlName="dateOfInclusion" ngModel name="dateOfInclusion">
+                      <div *ngIf="assetForm.get('dateOfInclusion')?.invalid && (assetForm.get('dateOfInclusion')?.dirty || assetForm.get('dateOfInclusion')?.touched)" class="text-danger">
+                        Date Of Inclusion is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Capacity/Size</label>
+                      <input type="number" class="form-control" placeholder="Enter capacity" formControlName="capacity" name="capacity" ngModel>
+                      <div *ngIf="assetForm.get('capacity')?.invalid && (assetForm.get('capacity')?.dirty || assetForm.get('capacity')?.touched)" class="text-danger">
+                        Capacity is required.
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Asset Category</label>
+                      <select class="form-select form-control" formControlName="assetCategory" name="assetCategory">
+                        <option *ngFor="let option of assetCategories" [value]="option">{{ option }}</option>
+                      </select>
+                      <div *ngIf="assetForm.get('assetCategory')?.invalid && (assetForm.get('assetCategory')?.dirty || assetForm.get('assetCategory')?.touched)" class="text-danger">
+                        Asset Category is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Location</label>
+                      <select class="form-select form-control" formControlName="location" name="location">
+                        <option *ngFor="let option of locations" [value]="option">{{ option }}</option>
+                      </select>
+                      <div *ngIf="assetForm.get('location')?.invalid && (assetForm.get('location')?.dirty || assetForm.get('location')?.touched)" class="text-danger">
+                        Location is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Asset Serial Number</label>
+                      <input type="text" class="form-control" placeholder="Enter Serial Number" formControlName="assetSerialNumber" name="assetSerialNumber" ngModel>
+                      <div *ngIf="assetForm.get('assetSerialNumber')?.invalid && (assetForm.get('assetSerialNumber')?.dirty || assetForm.get('assetSerialNumber')?.touched)" class="text-danger">
+                        Asset Serial Number is required.
+                      </div>
+                      
+                    </div>
+                    <div class="form-group">
+                      <label>Manufactured by</label>
+                      <input type="text" class="form-control" placeholder="Enter Manufactured by" formControlName="manufacturedBy" name="manufacturedBy" ngModel>
+                      <div *ngIf="assetForm.get('manufacturedBy')?.invalid && (assetForm.get('manufacturedBy')?.dirty || assetForm.get('manufacturedBy')?.touched)" class="text-danger">
+                        Manufactured By is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Quantity</label>
+                      <input type="number" class="form-control" placeholder="Enter quantity" formControlName="quantity" name="quantity" ngModel>
+                      <div *ngIf="assetForm.get('quantity')?.invalid && (assetForm.get('quantity')?.dirty || assetForm.get('quantity')?.touched)" class="text-danger">
+                        Quantity is required.
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Description</label>
+                      <textarea class="form-control" rows="3" placeholder="Enter description" width="100%" formControlName="description" name="description" ngModel></textarea>
+                      <div *ngIf="assetForm.get('description')?.invalid && (assetForm.get('description')?.dirty || assetForm.get('description')?.touched)" class="text-danger">
+                        Description is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Add Asset Images here.</label>
+                      <div class="card">
+                          <div class="card-body text-center" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
+                              <i class='bx bx-cloud-upload' (click)="openFileInput()"></i>
+                              <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" formControlName="assetImage" name="assetImage" accept="image/*">
+                              <p class="card-text">Drop files here or click to upload.</p>
+                          </div>
+                      </div>
+                      <div *ngIf="assetForm.get('assetImage')?.invalid && (assetForm.get('assetImage')?.dirty || assetForm.get('assetImage')?.touched)" class="text-danger">
+                          Add Asset Image is required.
+                      </div>
+                      <p *ngIf="selectedFile">Selected File: {{ selectedFile.name }} ({{ selectedFile.size | fileSize }})</p>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+
+              <div class="row">
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Store Inward Number</label>
+                      <input type="text" class="form-control" placeholder="Enter store inward no" formControlName="storeInwardNo" name="storeInwardNo" ngModel>
+                      <div *ngIf="assetForm.get('storeInwardNo')?.invalid && (assetForm.get('storeInwardNo')?.dirty || assetForm.get('storeInwardNo')?.touched)" class="text-danger">
+                        Store Inward Number is required.
+                    </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Department Gatepass Number</label>
+                      <input type="text" class="form-control" placeholder="Enter Gatepass Number" formControlName="deptGatepassNo" name="deptGatepassNo" ngModel>
+                      <div *ngIf="assetForm.get('deptGatepassNo')?.invalid && (assetForm.get('deptGatepassNo')?.dirty || assetForm.get('deptGatepassNo')?.touched)" class="text-danger">
+                        Department Gatepass Number is required.
+                    </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label for="storeInwardCopy">Store Inward Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="storeInwardCopy" (change)="onFileSelected1($event, 'storeInwardCopy'); onFileSelectedSIC($event)" formControlName="storeInwardCopy" name="storeInwardCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.storeInwardCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="departmentGatepassCopy">Department Gatepass Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="departmentGatepassCopy" (change)="onFileSelected1($event, 'departmentGatepassCopy'); onFileSelectedDGC($event)" formControlName="departmentGatepassCopy" name="departmentGatepassCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.departmentGatepassCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                  </form>
+                  
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
+              <div class="row">
+                <div class="col-md-4">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Warranty Number</label>
+                      <input type="text" class="form-control" placeholder="Enter warranty number" formControlName="warrantyNumber" name="warrantyNumber" ngModel>
+                      <div *ngIf="assetForm.get('warrantyNumber')?.invalid && (assetForm.get('warrantyNumber')?.dirty || assetForm.get('warrantyNumber')?.touched)" class="text-danger">
+                        Warranty Number is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Insurance Number</label>
+                      <input type="text" class="form-control" placeholder="Enter Insurance Number" formControlName="insuranceNumber" name="insuranceNumber" ngModel>
+                      <div *ngIf="assetForm.get('insuranceNumber')?.invalid && (assetForm.get('insuranceNumber')?.dirty || assetForm.get('insuranceNumber')?.touched)" class="text-danger">
+                        Insurance Number is required.
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-md-4">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Warranty Expiry Date</label>
+                      <input type="date" class="form-control" placeholder="Enter warranty date" formControlName="warrantyExpiryDate" name="warrantyExpiryDate" ngModel>
+                      <div *ngIf="assetForm.get('warrantyExpiryDate')?.invalid && (assetForm.get('warrantyExpiryDate')?.dirty || assetForm.get('warrantyExpiryDate')?.touched)" class="text-danger">
+                        Warranty Expiry Date is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Insurance Expiry Date</label>
+                      <input type="date" class="form-control" placeholder="Enter Insurance Expiry Date" formControlName="insuranceExpiryDate" name="insuranceExpiryDate" ngModel>
+                      <div *ngIf="assetForm.get('insuranceExpiryDate')?.invalid && (assetForm.get('insuranceExpiryDate')?.dirty || assetForm.get('insuranceExpiryDate')?.touched)" class="text-danger">
+                        Insurance Expiry Date is required.
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-md-4">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Warranty Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="warrantyCopy" (change)="onFileSelected1($event, 'warrantyCopy'); onFileSelectedWC($event)" formControlName="warrantyCopy" name="warrantyCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.warrantyCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Insurance Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="insuranceCopy" (change)="onFileSelected1($event, 'insuranceCopy'); onFileSelectedIC($event)" formControlName="insuranceCopy" name="insuranceCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.insuranceCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Spare MRN</label>
+                      <input type="text" class="form-control" placeholder="Enter Spare MRN" formControlName="spareMrn" name="spareMrn" ngModel>
+                      <div *ngIf="assetForm.get('spareMrn')?.invalid && (assetForm.get('spareMrn')?.dirty || assetForm.get('spareMrn')?.touched)" class="text-danger">
+                        Spare MRN is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Asset Working Status</label>
+                      <input type="text" class="form-control" placeholder="Enter Current Stage of Work" formControlName="assetWorkingStatus" name="assetWorkingStatus" ngModel>
+                      <div *ngIf="assetForm.get('assetWorkingStatus')?.invalid && (assetForm.get('assetWorkingStatus')?.dirty || assetForm.get('assetWorkingStatus')?.touched)" class="text-danger">
+                        Asset Working Status is required.
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Scrape  MRN</label>
+                      <input type="text" class="form-control" placeholder="Enter Scrap  MRN" formControlName="scrapeMrn" name="scrapeMrn" ngModel>
+                      <div *ngIf="assetForm.get('scrapeMrn')?.invalid && (assetForm.get('scrapeMrn')?.dirty || assetForm.get('scrapeMrn')?.touched)" class="text-danger">
+                        Scrape MRN is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Purchase and Disposal Approval Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="purchaseAndDisposalApprovalCopy" (change)="onFileSelected1($event, 'purchaseAndDisposalApprov alCopy'); onFileSelectedPADAC($event)"  formControlName="purchaseAndDisposalApprovalCopy" name="purchaseAndDisposalApprovalCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.purchaseAndDisposalApprovalCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
+              <div class="row">
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Purchase Order No</label>
+                      <input type="text" class="form-control" placeholder="Enter Purchase Order No" formControlName="purchaseOrderNo" name="purchaseOrderNo" ngModel>
+                      <div *ngIf="assetForm.get('purchaseOrderNo')?.invalid && (assetForm.get('purchaseOrderNo')?.dirty || assetForm.get('purchaseOrderNo')?.touched)" class="text-danger">
+                        Purchase Order Number is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Date of Purchase</label>
+                      <input type="date" class="form-control" placeholder="Enter Date of Purchase" formControlName="dateOfPurchase" name="dateOfPurchase" ngModel>
+                      <div *ngIf="assetForm.get('dateOfPurchase')?.invalid && (assetForm.get('dateOfPurchase')?.dirty || assetForm.get('dateOfPurchase')?.touched)" class="text-danger">
+                        Date of Purchase is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Invoice Number</label>
+                      <input type="text" class="form-control" placeholder="Enter Invoice Number" formControlName="invoiceNumber" name="invoiceNumber" ngModel>
+                      <div *ngIf="assetForm.get('invoiceNumber')?.invalid && (assetForm.get('invoiceNumber')?.dirty || assetForm.get('invoiceNumber')?.touched)" class="text-danger">
+                        Invoice Number is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Price</label>
+                      <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text">Rs</span>
+                        </div>
+                        <input type="number" class="form-control" placeholder="Price" formControlName="price" name="price" ngModel>
+                      </div>
+                      <div *ngIf="assetForm.get('price')?.invalid && (assetForm.get('price')?.dirty || assetForm.get('price')?.touched)" class="text-danger">
+                        Price is required.
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-md-6">
+                  <form [formGroup]="assetForm">
+                    <div class="form-group">
+                      <label>Purchase Order Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="purchaseOrderCopy" (change)="onFileSelected1($event, 'purchaseOrderCopy'); onFileSelectedPOC($event)" formControlName="purchaseOrderCopy" name="purchaseOrderCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.purchaseOrderCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Organization </label>
+                      <input type="text" class="form-control" placeholder="Enter Organization" formControlName="organization" name="organization" ngModel>
+                      <div *ngIf="assetForm.get('organization')?.invalid && (assetForm.get('organization')?.dirty || assetForm.get('organization')?.touched)" class="text-danger">
+                        Organization is required.
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Invoice Copy</label>
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" #fileInput id="invoiceCopy" (change)="onFileSelected1($event, 'invoiceCopy'); onFileSelectedI($event)" formControlName="invoiceCopy" name="invoiceCopy" ngModel>
+                        <p class="custom-file-label">{{ selectedFiles.invoiceCopy || 'Choose file' }}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Vendor Name </label>
+                        <input type="text" class="form-control" placeholder="Enter Vendor Name" formControlName="vendorName" name="vendorName" ngModel>
+                        <div *ngIf="assetForm.get('vendorName')?.invalid && (assetForm.get('vendorName')?.dirty || assetForm.get('vendorName')?.touched)" class="text-danger">
+                          Vendor Name is required.
+                        </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close_button" data-dismiss="modal" (click)="dismissModal()">Close</button>
+                <button type="submit" class="btn btn-primary stnd_button" (click)="addAsset(); dismissModal()" >Add Asset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<!--Edit asset modal-->
+<div class="modal fade animate__animated animate__backInDown" #editModal id="editAsset" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Asset</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="dismissModal()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="row"> 
+            <div class="col-md-6">
+              <form [formGroup]="editAsset">
+                <div class="form-group" >
+                  <label>Asset Name</label>
+                  <input type="text"  class="form-control" formControlName="assetName" name="assetName" ngModel>
+                </div>
+                <div class="form-group">
+                  <label>Department</label>
+                  <select class="form-select form-control" formControlName="department" name="department">
+                    <option *ngFor="let department of departments" [value]="department">{{ department }}</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            <div class="col-md-6">
+              <form [formGroup]="editAsset">
+                <div class="form-group">
+                  <label>Category</label>
+                  <select class="form-select form-control" formControlName="category" name="category">
+                    <option *ngFor="let category of assetCategories" [value]="category">{{ category }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Location</label>
+                  <select class="form-select form-control" formControlName="location" name="location">
+                    <option *ngFor="let location of locations" [value]="location">{{ location }}</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close_button" data-dismiss="modal" (click)="dismissModal()">Close</button>
+          <button type="button" class="btn btn-primary stnd_button" (click)="updateAsset()  ; dismissModal()">Update Asset</button>
+        </div>
+      </div>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+.footer_section{
+    position:relative;
+    top:0;
+    left:78px;
+    width:calc(100% - 78px);
+    transition:all 0.5s ease;
+}
+.footer_section.sidebar-open{
+    left: 250px;
+    width: calc(100% - 250px);
+}
+footer{
+    background-color:#fff;
+    padding:15px 15px 0 15px;
+    position:fixed;
+    bottom:0;
+    width:-webkit-fill-available;
+    animation:slideFromBottom .5s forwards ease; 
+}
+footer h6{
+    color:#9f84c0;
+}
+@keyframes slideFromBottom{
+    from {
+      bottom:-50px;
+    }
+    to {
+      bottom:0;
+    }
+}
+
+
+/* Responsive CSS starts */
+
+@media (max-width:575px){
+    .footer_section.sidebar-open{
+        z-index:1;
+        position:relative;
+        left:0;
+        width:100%;
+        transition:all 0.5s ease;
+    }
+}
+@media (max-width:769px){
+    footer .row .col-lg-9{
+      justify-content:start !important;
+    }
+}
+
+/* Responsive CSS ends */

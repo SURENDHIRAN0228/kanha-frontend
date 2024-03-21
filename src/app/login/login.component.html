@@ -1,0 +1,55 @@
+<section class="login_section">
+    <div class="container">
+        <div class="row justify-content-center align-items-center vh-100">
+            <div class="col-lg-11">
+                <div class="card border-0 shadow-lg animate__animated animate__flipInX">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <img src="https://media.istockphoto.com/id/1313456479/photo/man-and-soul-yoga-lotus-pose-meditation-on-nebula-galaxy-background.webp?b=1&s=170667a&w=0&k=20&c=p_EQSpHfArCOvibKe7ypoyFZERAiEFHuFx4weXiHd0g=" alt="meditation_img" class="img-fluid h-100 w-100">
+                            </div>
+                            <div class="col-lg-6 p-5">
+                                <h4 class="mb-4">Sign In</h4>
+                                <form [formGroup]="loginForm">
+                                    <div class="form-group" [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.dirty">
+                                        <i class='bx bx-envelope'></i>
+                                        <input type="email" placeholder="" autocomplete="off" formControlName="email">
+                                        <label>UserEmail</label>
+                                        <span class="text-danger" *ngIf="loginForm.hasError('required' , 'email') && loginForm.controls['email'].dirty">
+                                            Email is required.
+                                        </span>
+                                        <span class="text-danger" *ngIf="loginForm.hasError('email' , 'email')">
+                                            Invalid email format.
+                                        </span>
+                                    </div>
+                                    <div class="form-group" [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.dirty">
+                                        <i class='bx bx-lock-alt' [ngClass]=" visible? 'bx bx-lock-alt' : 'bx bx-lock-open-alt' " (click)="viewPass()"></i>
+                                        <input [type]=" changetype? 'password' : 'text' " placeholder="" formControlName="password">
+                                        <label>Password</label>
+                                        <span class="text-danger" *ngIf="loginForm.hasError('required' , 'password') && loginForm.controls['password'].dirty">
+                                            Password is required.
+                                        </span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <a href="javascript:void(0);" routerLink="/forgot" class="forgot_pass float-right">Forgot Password?</a>
+                                        </div>
+                                    </div>
+                                    <div class="form-group pt-3">
+                                        <button type="submit" class="btn btn-dark btn-lg btn-block rounded-pill" (click)="login()" [disabled]="loginForm.invalid" [class.disabled]="loginForm.invalid">Sign In</button>
+                                    </div>
+                                    <p class="text-center">Not a Member?
+                                        <span>
+                                            <a href="javascript:void(0);" routerLink="/register">Sign Up!</a>
+                                        </span>
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    

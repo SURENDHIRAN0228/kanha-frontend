@@ -1,0 +1,37 @@
+<app-sidebar></app-sidebar>
+
+<section class="header_section" [class.sidebar-open]="isSidebarOpen">
+    <header>
+        <div class="row">
+            <div class="col-lg-9 col-md-8 col-12 pl-4">
+                <div class="welcome">
+                    <h2>Welcome</h2>
+                    <h5>Admin</h5>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-12 d-flex justify-content-end mt-2 pr-4">
+                <form class="search_container">
+                    <input type="text" id="search-bar" placeholder="Search">
+                    <a href="#">
+                    <i class="bx bx-search-alt search-icon"></i>
+                    </a>
+                </form>
+                <div class="bell_container" (click)="toggleNotification()">
+                    <i class='bx bx-bell mt-2 ml-3'></i>
+                    <span class="badge">0</span>
+                </div>
+                <div class="notification_container" [ngClass]="{'show': isNotificationVisible}">
+                    <h5 class="mt-4">Notifications</h5>
+                    <div class="notification_content d-flex justify-content-center align-items-center">
+                        <div class="notifications_list mt-3">
+                            <p>No Notifications Found</p>
+                        </div>
+                        <span class="close_icon" (click)="toggleNotification()">
+                            <i class='bx bx-x'></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+</section>
